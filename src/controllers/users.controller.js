@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import prisma from '../../prisma/prisma.js';
+import moment from 'moment-timezone';
 
 const usernameRegex = /^[a-zA-Z0-9._]{3,16}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -30,7 +31,13 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await prisma.user.create({
-            data: { username, password: hashedPassword, role: 'user' }
+            data: { 
+                username, 
+                password: hashedPassword, 
+                role: 'user',
+                createdAt: moment().tz('Asia/Kolkata').toDate(),
+                updatedAt: moment().tz('Asia/Kolkata').toDate()
+            }
         });
 
         return res.status(201).json({

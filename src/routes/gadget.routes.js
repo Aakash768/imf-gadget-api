@@ -5,6 +5,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 import crypto from 'crypto';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import { checkRole } from '../controllers/role.middleware.js';
+import moment from 'moment-timezone';
 
 const router = Router();
 
@@ -17,15 +18,13 @@ router.get('/', verifyJWT, checkRole(['user', 'admin']), async (req, res) => {
             ? await prisma.gadget.findMany({ where: { status } })
             : await prisma.gadget.findMany();
 
-        const serverTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
         const gadgetsWithProbability = gadgets.map(gadget => ({
             ...gadget,
             missionSuccessProbability: (Math.random() * 100).toFixed(2) + "%",
-            created_at: new Date(gadget.created_at).toLocaleString('en-US', { timeZone: serverTimeZone }),
-            updated_at: new Date(gadget.updated_at).toLocaleString('en-US', { timeZone: serverTimeZone }),
-            decommissioned_at: gadget.decommissioned_at
-                ? new Date(gadget.decommissioned_at).toLocaleString('en-US', { timeZone: serverTimeZone })
+            created_at: moment(gadget.createdAt).tz('Asia/Kolkata').format(),
+            updated_at: moment(gadget.updatedAt).tz('Asia/Kolkata').format(),
+            decommissioned_at: gadget.decommissionedAt
+                ? moment(gadget.decommissionedAt).tz('Asia/Kolkata').format()
                 : null
         }));
 
@@ -37,7 +36,6 @@ router.get('/', verifyJWT, checkRole(['user', 'admin']), async (req, res) => {
 });
 
 // Post route
-// POST Route: Add a New Gadget
 router.post('/', verifyJWT, checkRole(['admin']), async (req, res) => {
     try {
         const { name, status } = req.body;
@@ -65,7 +63,9 @@ router.post('/', verifyJWT, checkRole(['admin']), async (req, res) => {
                 id: uuidv4(),
                 name,
                 codename: randomCodename,
-                status: status || 'Available'
+                status: status || 'Available',
+                createdAt: moment().tz('Asia/Kolkata').toDate(),
+                updatedAt: moment().tz('Asia/Kolkata').toDate()
             }
         });
 
@@ -97,39 +97,7 @@ router.patch('/:identifier', verifyJWT, checkRole(['admin']), async (req, res) =
             data: {
                 name: name || existingGadget.name,
                 status: status || existingGadget.status,
-                updatedAt: new Date().toISOString()// ✅ Fixed timestamp handling
-            }
-        });
-
-        res.json(updatedGadget);
-    } catch (error) {
-        console.error("Error Updating Gadget: ", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-
-// Patch route
-router.patch('/:identifier', verifyJWT, checkRole(['admin']), async (req, res) => {
-    try {
-        let { identifier } = req.params;
-        identifier = decodeURIComponent(identifier);
-
-        const { name, status } = req.body;
-
-        const isUUID = /^[0-9a-fA-F-]{36}$/.test(identifier);
-        const whereCondition = isUUID ? { id: identifier } : { codename: identifier };
-
-        const existingGadget = await prisma.gadget.findUnique({ where: whereCondition });
-        if (!existingGadget) {
-            return res.status(404).json({ error: 'Gadget not found' });
-        }
-
-        const updatedGadget = await prisma.gadget.update({
-            where: whereCondition,
-            data: {
-                name: name || existingGadget.name,
-                status: status || existingGadget.status,
-                updated_at: new Date()
+                updatedAt: moment().tz('Asia/Kolkata').toDate()
             }
         });
 
@@ -158,7 +126,7 @@ router.delete('/:identifier', verifyJWT, checkRole(['admin']), async (req, res) 
             where: whereCondition,
             data: {
                 status: 'Decommissioned',
-                decommissioned_at: new Date()
+                decommissionedAt: moment().tz('Asia/Kolkata').toDate()
             }
         });
 
@@ -189,7 +157,7 @@ router.post('/:identifier/self-destruct', verifyJWT, checkRole(['admin']), async
             where: whereCondition,
             data: {
                 status: 'Destroyed',
-                updated_at: new Date()
+                updatedAt: moment().tz('Asia/Kolkata').toDate()
             }
         });
 

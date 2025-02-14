@@ -13,7 +13,7 @@ This project is a backend application built with Node.js, Express, and Prisma. I
 1. Clone the repository:
     ```sh
     git clone https://github.com/Aakash768/imf-gadget-api
-    cd backend
+    cd imf-gadget-api
     ```
 
 2. Install dependencies:

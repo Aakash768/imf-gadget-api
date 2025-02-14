@@ -3,11 +3,9 @@ import prisma from '../../prisma/prisma.js';
 import { v4 as uuidv4 } from 'uuid';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 import crypto from 'crypto';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
-import { checkRole } from '../controllers/role.middleware.js';
 import moment from 'moment-timezone';
 
-//get gadgets
+// get gadgets
 const getGadgets = async (req, res) => {
     try {
         const { status } = req.query;
@@ -33,7 +31,7 @@ const getGadgets = async (req, res) => {
     }
 }
 
-//post gadgets
+// add new gadgets
 const postGadgets = async (req, res) => {
     try {
         const { name, status } = req.body;
@@ -74,16 +72,18 @@ const postGadgets = async (req, res) => {
     }
 }
 
-//update gadgets
+// update gadgets
 const updateGadgets = async (req, res) => {
     try {
         let { identifier } = req.params;
         identifier = decodeURIComponent(identifier);
-
+        console.log(`Received identifier: ${identifier}`);
         const { name, status } = req.body;
 
         const isUUID = /^[0-9a-fA-F-]{36}$/.test(identifier);
         const whereCondition = isUUID ? { id: identifier } : { codename: identifier };
+
+        
 
         const existingGadget = await prisma.gadget.findUnique({ where: whereCondition });
         if (!existingGadget) {
@@ -104,10 +104,9 @@ const updateGadgets = async (req, res) => {
         console.error("Error Updating Gadget: ", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
-
 }
 
-//delete gadgets
+// delete gadgets
 const deleteGadgets = async (req, res) => {
     try {
         let { identifier } = req.params;
@@ -119,6 +118,14 @@ const deleteGadgets = async (req, res) => {
         const existingGadget = await prisma.gadget.findUnique({ where: whereCondition });
         if (!existingGadget) {
             return res.status(404).json({ error: 'Gadget not found' });
+        }
+
+        if (existingGadget.status === 'Destroyed') {
+            return res.status(400).json({ error: 'Cannot decommission a destroyed gadget' });
+        }
+
+        if (existingGadget.status === 'Decommissioned') {
+            return res.status(400).json({ error: 'Gadget is already decommissioned' });
         }
 
         const updatedGadget = await prisma.gadget.update({
@@ -136,7 +143,7 @@ const deleteGadgets = async (req, res) => {
     }
 }
 
-//self destruct
+// self destruct
 const selfDestruct = async (req, res) => {
     try {
         let { identifier } = req.params;

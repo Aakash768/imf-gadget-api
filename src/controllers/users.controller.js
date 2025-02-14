@@ -7,8 +7,25 @@ import moment from 'moment-timezone';
 const usernameRegex = /^[a-zA-Z0-9._]{3,16}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+const checkIfLoggedIn = (req) => {
+    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+    if (token) {
+        try {
+            jwt.verify(token, process.env.JWT_SECRET);
+            return true;
+        } catch (error) {
+            // Token is invalid or expired, proceed with registration or login
+        }
+    }
+    return false;
+};
+
 const registerUser = async (req, res) => {
     try {
+        if (checkIfLoggedIn(req)) {
+            return res.status(400).json({ error: "User is already logged in. Please log out first." });
+        }
+
         const { username, password } = req.body;
 
         if (!username?.trim() || !password?.trim()) {
@@ -52,6 +69,10 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     try {
+        if (checkIfLoggedIn(req)) {
+            return res.status(400).json({ error: "User is already logged in. Please log out first." });
+        }
+
         const { username, password } = req.body;
 
         if (!username || !password) {

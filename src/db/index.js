@@ -17,18 +17,25 @@ const pool = new Pool({
 const prisma = new PrismaClient();
 
 const connectDB = async () => {
-    try {
-        await pool.connect();
-        console.log('PostgreSQL connected');
-    } catch (error) {
-        console.error('Error connecting to local PostgreSQL database', error);
-    }
+    let prismaConnected = false;
 
     try {
         await prisma.$connect();
+        prismaConnected = true;
         console.log('Prisma connected to PostgreSQL');
     } catch (error) {
         console.error('Error connecting to Prisma PostgreSQL database', error);
+    }
+
+    if (!prismaConnected) {
+        try {
+            await pool.connect();
+            console.log('PostgreSQL connected');
+        } catch (error) {
+            console.error('Error connecting to local PostgreSQL database', error);
+            console.error('Both local PostgreSQL and Prisma connections failed. Exiting...');
+            process.exit(1);
+        }
     }
 };
 

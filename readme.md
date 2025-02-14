@@ -1,38 +1,7 @@
-Collecting workspace information# Backend Project
 
 ## Overview
 
 This project is a backend application built with Node.js, Express, and Prisma. It provides APIs for managing gadgets and users, including functionalities like registration, login, CRUD operations on gadgets, and role-based access control.
-
-## Project Structure
-
-```
-.env
-.gitignore
-app.js
-index.js
-package.json
-prisma/
-	migrations/
-		20250214081420_init/
-			migration.sql
-		migration_lock.toml
-	prisma.js
-	schema.prisma
-src/
-	config/
-	controllers/
-		gadget.controller.js
-		users.controller.js
-	db/
-		index.js
-	middlewares/
-		auth.middleware.js
-		role.middleware.js
-	routes/
-		gadget.routes.js
-		users.routes.js
-```
 
 ## Prerequisites
 
@@ -62,7 +31,7 @@ src/
         ```
 
 4. Set up the database:
-    - Ensure PostgreSQL is running.
+    - Ensure PostgreSQL/ORM-Prisma is running.
     - Update the `DATABASE_URL` in the `.env` file with your PostgreSQL connection string.
     - Run Prisma migrations:
         ```sh

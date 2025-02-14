@@ -12,7 +12,7 @@ This project is a backend application built with Node.js, Express, and Prisma. I
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
+    git clone https://github.com/Aakash768/imf-gadget-api
     cd backend
     ```
 
